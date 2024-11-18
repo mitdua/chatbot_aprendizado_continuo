@@ -1,0 +1,39 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.16.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    networks:
+      - app_network
+
+  
+  streamlit_app:
+    container_name: streamlit_app
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "8501:8501"  
+    environment:
+      - STREAMLIT_ENV=production
+    restart: unless-stopped
+    networks:
+      - app_network
+    depends_on:
+      - elasticsearch
+
+
+volumes:
+  esdata:
+    driver: local
+
+networks:
+  app_network:
+    driver: bridge
